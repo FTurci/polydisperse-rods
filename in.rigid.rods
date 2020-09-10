@@ -1,0 +1,44 @@
+# Tethered nanorods
+
+atom_style	molecular
+
+read_data	data.rigid.rods2
+
+# Specify bond parameters
+
+
+# Specify initial velocities
+
+velocity	all create 1.4 109345
+
+# Specify rigid components
+
+group		rods type 1
+group		tethers	subtract all rods
+
+neigh_modify 	exclude	molecule rods delay 0 every 1
+
+# Specify the pair potentials
+
+# Weeks-Chandler-Andersen potential 
+variable wcaCut equal 1.122462048
+pair_style	lj/cut	${wcaCut}
+pair_modify	shift	yes
+pair_coeff	* * 1.0	1.0 ${wcaCut}
+
+# Specify output
+
+thermo	100
+thermo_style custom step temp pe etotal press enthalpy lx ly lz pxx pyy pzz
+thermo_modify flush yes lost warn
+
+dump mydump  all atom 100 dump.atom
+timestep	0.005
+
+fix	1	rods	rigid molecule
+# Langevin thermostat
+fix	2	tethers	nve
+fix	3	all	langevin 1.4 1.4 1.0 437624
+
+run	50000
+
